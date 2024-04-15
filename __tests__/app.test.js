@@ -8,6 +8,7 @@ const {
   articleData,
   commentData,
 } = require("../db/data/test-data");
+const endpointFile = require("../endpoints.json")
 
 afterAll(() => {
   db.end();
@@ -44,3 +45,15 @@ describe("/api/invalid-endpoint", () => {
       });
   });
 });
+
+describe("/api", () => {
+  it("GET 200: responds with all available endpoints on the API", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({body}) => {
+        const { endpoints }=body
+        expect(endpoints).toEqual(endpointFile);
+    })
+  })
+})
