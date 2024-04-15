@@ -1,7 +1,15 @@
 const express = require("express");
 const { getTopics } = require("./controllers/topic.controller");
 const { getEndpoints } = require("./controllers/api.controller");
-const { getArticleById } = require("./controllers/articles.controller");
+const {
+  getArticleById,
+  getArticles,
+} = require("./controllers/articles.controller");
+const {
+  internalServerError,
+  databaseError,
+  customError,
+} = require("./error_handling_middleware");
 
 const app = express();
 
@@ -9,31 +17,18 @@ app.get("/api/topics", getTopics);
 
 app.get("/api", getEndpoints);
 
+app.get("/api/articles", getArticles);
+
 app.get("/api/articles/:article_id", getArticleById);
 
 app.all("/api/*", (req, res, next) => {
   next({ status: 404, message: "not found" });
 });
 
-app.use((err, req, res, next) => {
-  if (err.code === "22P02") {
-    res.status(400).send({ message: "bad request" });
-  } else {
-    next(err);
-  }
-});
+ app.use(databaseError);
 
-app.use((err, req, res, next) => {
-  if (err.status && err.message) {
-    res.status(err.status).send({ message: err.message });
-  } else {
-    next(err);
-  }
-});
+ app.use(customError);
 
-app.use((err, req, res, next) => {
-  console.log(err);
-  res.status(500).send({ message: "internal server error" });
-});
+ app.use(internalServerError);
 
 module.exports = app;
