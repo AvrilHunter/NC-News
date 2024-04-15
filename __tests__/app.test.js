@@ -18,6 +18,18 @@ beforeEach(() => {
   return seed({ topicData, userData, articleData, commentData });
 });
 
+describe("/api", () => {
+  it("GET 200: responds with all available endpoints on the API", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body }) => {
+        const { endpoints } = body;
+        expect(endpoints).toEqual(endpointFile);
+      });
+  });
+});
+
 describe("/api/topics", () => {
   it("GET 200: responds with all topics.", () => {
     return request(app)
@@ -87,14 +99,27 @@ describe("/api/articles/:article_id", () => {
   })
 });
 
-describe("/api", () => {
-  it("GET 200: responds with all available endpoints on the API", () => {
+describe("/api/articles", () => {
+  it("GET 200: responds with all articles with correct properties", () => {
     return request(app)
-      .get("/api")
+      .get("/api/articles")
       .expect(200)
       .then(({ body }) => {
-        const { endpoints } = body;
-        expect(endpoints).toEqual(endpointFile);
-      });
-  });
-});
+        const { articles } = body
+        expect(articles.length).toBe(13)
+        expect(articles).toBeSortedBy("created_at", {descending:true})
+        articles.forEach((article) => {
+          expect(article.author).toBeString()
+          expect(article.title).toBeString();
+          expect(article.article_id).toBeNumber()
+          expect(article.topic).toBeString();
+          expect(article.created_at).toBeString();
+          expect(article.votes).toBeNumber();
+          expect(article.article_img_url).toBeString();
+          expect(article.comment_count).toBeNumber();
+          expect(article.body).toBeUndefined()
+        })
+    })
+  })
+})
+
