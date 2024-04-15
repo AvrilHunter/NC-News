@@ -123,3 +123,43 @@ describe("/api/articles", () => {
   })
 })
 
+describe("/api/articles/:article_id/comments", () => {
+  it("GET 200: responds with all comments from a given article id.", () => {
+    return request(app)
+      .get("/api/articles/3/comments")
+      .expect(200)
+      .then(({ body }) => {
+        const { comments } = body
+        expect(comments).toBeArray()
+        expect(comments).toHaveLength(2)
+        expect(comments).toBeSortedBy("created_at",{descending:true})
+        comments.forEach((comment) => {
+          expect(comment.comment_id).toBeNumber();
+          expect(comment.votes).toBeNumber();
+          expect(comment.created_at).toBeString()
+          expect(comment.author).toBeString();
+          expect(comment.body).toBeString();
+          expect(comment.article_id).toBeNumber();
+        })
+    })
+  })
+  it("GET 400: response when given invalid article id", () => {
+    return request(app)
+      .get("/api/articles/not-an-id/comments")
+      .expect(400)
+      .then(({ body }) => {
+        const { message } = body
+        expect(message).toBe("bad request")
+    })
+  })
+  it("GET 404: when given valid id but no comments to be returned.", () => {
+    return request(app)
+      .get("/api/articles/2/comments")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("not found")
+      })
+    
+  })
+})
+

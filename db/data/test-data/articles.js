@@ -19,7 +19,7 @@ module.exports = [
       "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
   },
   {
-    title: "Eight pug gifs that remind me of mitch",
+    title: "Eight pug gifts that remind me of mitch",
     topic: "mitch",
     author: "icellusedkars",
     body: "some gifs",
