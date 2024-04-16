@@ -9,6 +9,7 @@ const {
   commentData,
 } = require("../db/data/test-data");
 const endpointFile = require("../endpoints.json");
+const req = require("express/lib/request.js");
 
 afterAll(() => {
   db.end();
@@ -95,6 +96,66 @@ describe("/api/articles/:article_id", () => {
       .then(({ body }) => {
         const { message } = body;
         expect(message).toBe("article not found");
+      });
+  });
+  it("PATCH 200: responds with the updated article with amended vote property", () => {
+    const body = { inc_votes: 1 }
+    return request(app)
+      .patch("/api/articles/1")
+      .send(body)
+      .expect(200)
+      .then(({ body: { article } }) => {
+        expect(article).toMatchObject({
+          title: "Living in the shadow of a great man",
+          topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 101,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          article_id: 1,
+        })
+      })
+  })
+  it("PATCH 400: when given vote in invalid data type", () => {
+    const body = { inc_votes: "one" }
+    return request(app)
+      .patch("/api/articles/1")
+      .send(body)
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request")
+      })
+  })
+   it("PATCH 400: when given invalid article ID data type", () => {
+     const body = { inc_votes: 1 };
+     return request(app)
+       .patch("/api/articles/one")
+       .send(body)
+       .expect(400)
+       .then(({ body: { message } }) => {
+         expect(message).toBe("bad request");
+       });
+   });
+  it("PATCH 404: when given a valid article id but which doesn't exist", () => {
+    const body = { inc_votes: 1 };
+    return request(app)
+      .patch("/api/articles/14")
+      .send(body)
+      .expect(404)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("article not found");
+      });
+  });
+  it("PATCH 400: when given body with incorrect property", () => {
+    const body = { increase_votes: 1 };
+    return request(app)
+      .patch("/api/articles/1")
+      .send(body)
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request");
       });
   });
 });
