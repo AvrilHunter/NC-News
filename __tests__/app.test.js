@@ -294,3 +294,27 @@ describe("/api/articles/:article_id/comments", () => {
   })
 });
 
+describe("/api/comments/:comment_id", () => {
+  it("DELETE 204: responds with correct status", () => {
+    return request(app)
+      .delete("/api/comments/1")
+      .expect(204)
+  })
+  it("DELETE 400: when given invalid data type for comment id", () => {
+    return request(app)
+      .delete("/api/comments/one")
+      .expect(400)
+      .then(({ body :{message}}) => {
+      expect(message).toBe("bad request")
+    })
+  })
+  it("DELETE 404: when given valid id data type but which doesn't exist yet", () => {
+    return request(app)
+      .delete("/api/comments/19")
+      .expect(404)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("comment does not exist");
+      });
+  });
+})
+

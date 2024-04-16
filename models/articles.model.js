@@ -50,7 +50,7 @@ exports.checkArticleExists = (article_id) => {
       if (article.length === 0) {
         return Promise.reject({ status: 404, message: "article not found" });
       }
-    });
+    })
 };
 
 exports.updateArticle = (article_id, voteChanges) => {
@@ -61,16 +61,14 @@ exports.updateArticle = (article_id, voteChanges) => {
     WHERE article_id = $1;`,
       [article_id]
     )
-    .then(({ rows }) => {
-      const currentVotes = rows[0].votes
-      const newVotes = voteChanges + currentVotes
+    .then(() => {
       return db.query(
         `UPDATE articles
           SET
-          votes=$1
+          votes=votes+$1
           WHERE article_id=$2
           RETURNING *`,
-        [newVotes, article_id]
+        [voteChanges, article_id]
       );
     })
     .then(({ rows }) => {

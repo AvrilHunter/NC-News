@@ -6,7 +6,11 @@ const {
   getArticles,
   patchArticle,
 } = require("./controllers/articles.controller");
-const{getComments, postComment}= require("./controllers/comments.controller")
+const {
+  getComments,
+  postComment,
+  deleteComment,
+} = require("./controllers/comments.controller");
 const {
   internalServerError,
   databaseError,
@@ -27,6 +31,8 @@ app.patch("/api/articles/:article_id", patchArticle)
 
 app.get("/api/articles/:article_id/comments", getComments)
 app.post("/api/articles/:article_id/comments", postComment)
+
+app.delete("/api/comments/:comment_id", deleteComment)
 
 app.all("/api/*", (req, res, next) => {
   next({ status: 404, message: "not found" });
