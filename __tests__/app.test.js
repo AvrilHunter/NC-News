@@ -180,6 +180,7 @@ describe("/api/articles", () => {
           expect(article.comment_count).toBeNumber();
           expect(article.body).toBeUndefined();
         });
+        expect(articles[0].comment_count).toBe(2)
       });
   });
 });
@@ -316,5 +317,21 @@ describe("/api/comments/:comment_id", () => {
         expect(message).toBe("comment does not exist");
       });
   });
+})
+
+describe("/api/users", () => {
+  it("GET 200: responds with all users", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body:{users} }) => {
+        expect(users).toHaveLength(4)
+        users.forEach((user) => {
+          expect(user.username).toBeString()
+          expect(user.name).toBeString()
+          expect(user.avatar_url).toBeString()
+        })
+    })
+  })
 })
 
