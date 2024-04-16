@@ -17,6 +17,8 @@ const {
   customError,
 } = require("./error_handling_middleware");
 
+const{getUsers} = require("./controllers/users.controller")
+
 const app = express();
 app.use(express.json())
 
@@ -33,6 +35,8 @@ app.get("/api/articles/:article_id/comments", getComments)
 app.post("/api/articles/:article_id/comments", postComment)
 
 app.delete("/api/comments/:comment_id", deleteComment)
+
+app.get("/api/users",getUsers);
 
 app.all("/api/*", (req, res, next) => {
   next({ status: 404, message: "not found" });
