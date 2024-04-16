@@ -99,5 +99,10 @@
         "article_id": 3
       }
     }
+  },
+  "DELETE /api/comments/:comment_id":{
+    "description": "serves 204 status code when successfully deletes a comment by give id",
+    "queries": [],
+    "exampleResponse": "no response provided"
   }
 }
