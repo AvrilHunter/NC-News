@@ -15,10 +15,15 @@ exports.selectArticle = (id) => {
     });
 };
 
-exports.selectArticles = () => {
-  return db
-    .query(
-      `SELECT
+exports.selectArticles = (query) => {
+  if (Object.keys(query).length !== 0 && !query.topic) {
+    return Promise.reject({ status: 400, message: "bad request" })
+  }
+
+  const { topic } = query
+  
+  let queryValues = [];
+  let queryStr = `SELECT
       articles.author,       articles.title,
       articles.article_id,       articles.topic,
       articles.created_at,
@@ -27,20 +32,30 @@ exports.selectArticles = () => {
       COUNT(comments.comment_id) AS comment_count
     FROM articles
     LEFT OUTER JOIN comments
-    ON articles.article_id=comments.article_id
-    GROUP BY  articles.author,
+    ON articles.article_id=comments.article_id`;
+
+  if (topic) {
+    queryStr += ` WHERE topic = $1`;
+    queryValues.push(topic);
+  }
+
+  queryStr += ` GROUP BY  articles.author,
       articles.title,      articles.article_id,
       articles.topic,      articles.created_at,
       article_img_url,
       articles.votes
-    ORDER BY articles.created_at DESC;`
-    )
-    .then(({ rows }) => {
-      rows.forEach((article) => {
-        article.comment_count = Number(article.comment_count);
-      });
-      return rows;
+    ORDER BY articles.created_at DESC;`;
+
+  return db.query(queryStr, queryValues).then(({ rows }) => {
+    if (rows.length === 0) {
+      return Promise.reject({ status: 404, message: "topic not found" });
+    }
+
+    rows.forEach((article) => {
+      article.comment_count = Number(article.comment_count);
     });
+    return rows;
+  });
 };
 
 exports.checkArticleExists = (article_id) => {

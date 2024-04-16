@@ -15,9 +15,14 @@ exports.getArticleById = (req, res, next) => {
 };
 
 exports.getArticles = (req, res, next) => {
-  return selectArticles().then((articles) => {
-    res.status(200).send({ articles });
-  });
+  const query = req.query;
+  //console.log(Object.keys(req.query));
+  return selectArticles(query)
+    .then((articles) => {
+      // console.log(articles);
+      res.status(200).send({ articles });
+    })
+    .catch(next);
 };
 
 exports.patchArticle = (req, res, next) => {

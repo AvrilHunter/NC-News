@@ -183,7 +183,34 @@ describe("/api/articles", () => {
         expect(articles[0].comment_count).toBe(2)
       });
   });
-});
+  it("GET 200: if given topic query, should revert with these articles", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toHaveLength(12)
+        articles.forEach((article) => {
+          expect(article.topic).toBe("mitch")
+        })
+      })
+  })
+  it ("GET 404: if given a topic as a query which does not exist", () => {
+    return request(app)
+      .get("/api/articles/?topic=3")
+      .expect(404)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("topic not found");
+      })
+  })
+  it("GET 400:if given query parameter which is not 'topic'", () => {
+    return request(app)
+      .get("/api/articles/?not-topic=something")
+      .expect(400)
+      .then(({ body: { message } }) => {
+      expect(message).toBe("bad request")
+    })
+  })
+})
 
 describe("/api/articles/:article_id/comments", () => {
   it("GET 200: responds with all comments from a given article id.", () => {
