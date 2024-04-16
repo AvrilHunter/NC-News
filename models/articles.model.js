@@ -43,9 +43,9 @@ exports.selectArticles = () => {
     });
 };
 
-exports.checkArticleExists = (id) => {
+exports.checkArticleExists = (article_id) => {
   return db
-    .query(`SELECT * FROM articles WHERE article_id=$1`, [id])
+    .query(`SELECT * FROM articles WHERE article_id=$1`, [article_id])
     .then(({ rows: article }) => {
       if (article.length === 0) {
         return Promise.reject({ status: 404, message: "article not found" });
@@ -53,3 +53,27 @@ exports.checkArticleExists = (id) => {
     });
 };
 
+exports.updateArticle = (article_id, voteChanges) => {
+  return db
+    .query(
+      `SELECT votes
+    FROM articles
+    WHERE article_id = $1;`,
+      [article_id]
+    )
+    .then(({ rows }) => {
+      const currentVotes = rows[0].votes
+      const newVotes = voteChanges + currentVotes
+      return db.query(
+        `UPDATE articles
+          SET
+          votes=$1
+          WHERE article_id=$2
+          RETURNING *`,
+        [newVotes, article_id]
+      );
+    })
+    .then(({ rows }) => {
+      return rows[0]
+    })
+};

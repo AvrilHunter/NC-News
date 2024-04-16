@@ -1,6 +1,7 @@
 const {
   selectArticle,
   selectArticles,
+  updateArticle,
   checkArticleExists,
 } = require("../models/articles.model");
 
@@ -20,3 +21,17 @@ exports.getArticles = (req, res, next) => {
     res.status(200).send({ articles });
   });
 };
+
+exports.patchArticle = (req, res, next) => {
+  const { article_id } = req.params
+  const { inc_votes: votes } = req.body
+
+  return checkArticleExists(article_id)
+    .then(() => {
+      return updateArticle(article_id, votes);
+    })
+    .then((article) => {
+      res.status(200).send({ article });
+    })
+    .catch(next)
+}

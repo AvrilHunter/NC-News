@@ -3,7 +3,8 @@ const { getTopics } = require("./controllers/topics.controller");
 const { getEndpoints } = require("./controllers/api.controller");
 const {
   getArticleById,
-  getArticles
+  getArticles,
+  patchArticle,
 } = require("./controllers/articles.controller");
 const{getComments, postComment}= require("./controllers/comments.controller")
 const {
@@ -22,6 +23,7 @@ app.get("/api", getEndpoints);
 app.get("/api/articles", getArticles);
 
 app.get("/api/articles/:article_id", getArticleById);
+app.patch("/api/articles/:article_id", patchArticle)
 
 app.get("/api/articles/:article_id/comments", getComments)
 app.post("/api/articles/:article_id/comments", postComment)
