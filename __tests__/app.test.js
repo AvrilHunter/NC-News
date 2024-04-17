@@ -194,21 +194,43 @@ describe("/api/articles", () => {
         })
       })
   })
-  it ("GET 404: if given a topic as a query which does not exist", () => {
+  it ("GET 404: if given a value for topic as a query which does not exist", () => {
     return request(app)
-      .get("/api/articles/?topic=3")
+      .get("/api/articles/?topic=does-not-exist")
       .expect(404)
       .then(({ body: { message } }) => {
         expect(message).toBe("topic not found");
       })
   })
-  it("GET 400:if given query parameter which is not 'topic'", () => {
+  it("GET 200: receives all articles if given query parameter which is not 'topic'.", () => {
     return request(app)
       .get("/api/articles/?not-topic=something")
-      .expect(400)
-      .then(({ body: { message } }) => {
-      expect(message).toBe("bad request")
-    })
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles.length).toBe(13);
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+        articles.forEach((article) => {
+          expect(article.author).toBeString();
+          expect(article.title).toBeString();
+          expect(article.article_id).toBeNumber();
+          expect(article.topic).toBeString();
+          expect(article.created_at).toBeString();
+          expect(article.votes).toBeNumber();
+          expect(article.article_img_url).toBeString();
+          expect(article.comment_count).toBeNumber();
+          expect(article.body).toBeUndefined();
+        });
+        expect(articles[0].comment_count).toBe(2);
+      });
+  })
+  it("GET 200: if given a query parameter which exists but there aren't any topics returns []", () => {
+     return request(app)
+       .get("/api/articles?topic=paper")
+       .expect(200)
+       .then(({ body: { articles } }) => {
+         expect(articles).toEqual([])
+       });
   })
 })
 

@@ -1,4 +1,5 @@
 const db = require("../db/connection");
+const { doesTopicExist } = require("./topic.model");
 
 exports.selectArticle = (id) => {
   return db
@@ -15,13 +16,7 @@ exports.selectArticle = (id) => {
     });
 };
 
-exports.selectArticles = (query) => {
-  if (Object.keys(query).length !== 0 && !query.topic) {
-    return Promise.reject({ status: 400, message: "bad request" })
-  }
-
-  const { topic } = query
-  
+exports.selectArticles = (topic) => {
   let queryValues = [];
   let queryStr = `SELECT
       articles.author,       articles.title,
@@ -46,14 +41,11 @@ exports.selectArticles = (query) => {
       articles.votes
     ORDER BY articles.created_at DESC;`;
 
-  return db.query(queryStr, queryValues).then(({ rows }) => {
-    if (rows.length === 0) {
-      return Promise.reject({ status: 404, message: "topic not found" });
-    }
-
-    rows.forEach((article) => {
-      article.comment_count = Number(article.comment_count);
-    });
+  return db.query(queryStr, queryValues)
+    .then(({ rows }) => {
+      rows.forEach((article) => {
+        article.comment_count = Number(article.comment_count);
+      });
     return rows;
   });
 };
@@ -61,8 +53,8 @@ exports.selectArticles = (query) => {
 exports.checkArticleExists = (article_id) => {
   return db
     .query(`SELECT * FROM articles WHERE article_id=$1`, [article_id])
-    .then(({ rows: article }) => {
-      if (article.length === 0) {
+    .then(( {rows}) => {
+      if (rows.length === 0) {
         return Promise.reject({ status: 404, message: "article not found" });
       }
     })
