@@ -158,6 +158,35 @@ describe("/api/articles/:article_id", () => {
         expect(message).toBe("bad request");
       });
   });
+  it("GET 200: responds with article corresponding with given ID, should also include the comment-count", () => {
+    return request(app)
+      .get("/api/articles/1")
+      .expect(200)
+      .then(({ body }) => {
+        const { article } = body;
+        expect(article).toMatchObject({
+          title: "Living in the shadow of a great man",
+          topic: "mitch",
+          author: "butter_bridge",
+          body: "I find this existence challenging",
+          created_at: "2020-07-09T20:11:00.000Z",
+          votes: 100,
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
+          article_id: 1,
+          comment_count:11
+        });
+      });
+  });
+   it("GET 200: responds with article corresponding with given ID - the comment-count displays as 0 if no associated comments.", () => {
+     return request(app)
+       .get("/api/articles/2")
+       .expect(200)
+       .then(({ body }) => {
+         const { article } = body;
+         expect(article.comment_count).toBe(0)
+       });
+   });
 });
 
 describe("/api/articles", () => {

@@ -4,8 +4,26 @@ const { doesTopicExist } = require("./topic.model");
 exports.selectArticle = (id) => {
   return db
     .query(
-      `SELECT * FROM articles
-  WHERE article_id=$1;`,
+      `SELECT
+      articles.author,       articles.title,
+      articles.article_id,       articles.body,
+      articles.topic,
+      articles.created_at,
+      article_img_url,
+      articles.votes,
+
+      COUNT(comments.comment_id)::INT AS comment_count
+      FROM articles
+      LEFT OUTER JOIN comments
+      ON articles.article_id=comments.article_id
+      WHERE articles.article_id=$1
+      GROUP BY articles.article_id,
+      articles.author,       articles.title,
+      articles.article_id,       articles.body,
+      articles.topic,
+      articles.created_at,
+      article_img_url,
+      articles.votes;`, 
       [id]
     )
     .then(({ rows }) => {
@@ -24,7 +42,7 @@ exports.selectArticles = (topic) => {
       articles.created_at,
       article_img_url,
       articles.votes,
-      COUNT(comments.comment_id) AS comment_count
+      COUNT(comments.comment_id)::INT AS comment_count
     FROM articles
     LEFT OUTER JOIN comments
     ON articles.article_id=comments.article_id`;
@@ -43,9 +61,6 @@ exports.selectArticles = (topic) => {
 
   return db.query(queryStr, queryValues)
     .then(({ rows }) => {
-      rows.forEach((article) => {
-        article.comment_count = Number(article.comment_count);
-      });
     return rows;
   });
 };
