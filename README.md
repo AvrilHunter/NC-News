@@ -1,12 +1,11 @@
 # Northcoders News API
 
-Welcome to Northcoders News API containing articles with comments and votes on a variety of topics!
+Welcome to Northcoders News API containing articles on a variety of topics, users can interact with votes and comments.
 
 
 ## About The Project
 
-### Hosted REST api server available at - https://nc-news-z2fk.onrender.com/
-
+Hosted REST API server available at - https://nc-news-z2fk.onrender.com/
 ___
 
 ### Built With
@@ -61,13 +60,15 @@ Postgres minimum version = 14.11
 ## Usage
 
 
-The project is a REST API with functionality to search and amend articles as well as the functionality to post comments. 
+The project is a REST API with various news articles.
 
-- Like something - you can add a vote to the article!
+- Like something - you can add a vote to the article.
 
-- Have an opinion - feel free to post a comment! 
+- Disagree with an article - you can remove votes from the article.
 
-- Join in the conversation now.
+- Have an opinion - feel free to post a comment.
+
+- Join the conversation now!
 
 
 
