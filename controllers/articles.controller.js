@@ -19,7 +19,6 @@ exports.getArticles = (req, res, next) => {
   const { topic } = req.query;
     Promise.all([selectArticles(topic), doesTopicExist(topic)])
     .then(([articles]) => {
-      console.log("I am here in articles",articles);
       res.status(200).send({ articles });
     })
     .catch(next);
