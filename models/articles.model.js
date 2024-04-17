@@ -1,5 +1,4 @@
 const db = require("../db/connection");
-const { doesTopicExist } = require("./topic.model");
 
 exports.selectArticle = (id) => {
   return db
@@ -11,19 +10,12 @@ exports.selectArticle = (id) => {
       articles.created_at,
       article_img_url,
       articles.votes,
-
       COUNT(comments.comment_id)::INT AS comment_count
       FROM articles
       LEFT OUTER JOIN comments
       ON articles.article_id=comments.article_id
       WHERE articles.article_id=$1
-      GROUP BY articles.article_id,
-      articles.author,       articles.title,
-      articles.article_id,       articles.body,
-      articles.topic,
-      articles.created_at,
-      article_img_url,
-      articles.votes;`, 
+      GROUP BY articles.article_id;`, 
       [id]
     )
     .then(({ rows }) => {
@@ -34,11 +26,20 @@ exports.selectArticle = (id) => {
     });
 };
 
-exports.selectArticles = (topic) => {
+exports.selectArticles = (topic, sort) => {
+  const validSort = [
+    "author",
+    "title",
+    "article_id",
+    "topic",
+    "created_at",
+    "article_img_url", "votes", "comment_count"
+  ];
+  
   let queryValues = [];
   let queryStr = `SELECT
-      articles.author,       articles.title,
-      articles.article_id,       articles.topic,
+      articles.author,       title,
+      articles.article_id,       topic,
       articles.created_at,
       article_img_url,
       articles.votes,
@@ -52,12 +53,14 @@ exports.selectArticles = (topic) => {
     queryValues.push(topic);
   }
 
-  queryStr += ` GROUP BY  articles.author,
-      articles.title,      articles.article_id,
-      articles.topic,      articles.created_at,
-      article_img_url,
-      articles.votes
-    ORDER BY articles.created_at DESC;`;
+  queryStr += ` GROUP BY articles.article_id`
+  
+  if (sort && validSort.includes(sort)) {
+    queryStr+= ` ORDER BY articles.${sort} DESC`;
+  } else {
+    queryStr += ` ORDER BY articles.created_at DESC`;
+  }
+
 
   return db.query(queryStr, queryValues)
     .then(({ rows }) => {

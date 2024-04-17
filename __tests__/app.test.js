@@ -261,6 +261,14 @@ describe("/api/articles", () => {
          expect(articles).toEqual([])
        });
   })
+  it("GET 200: when given valid sort-by query defaulting to descending", () => {
+    return request(app)
+      .get("/api/articles?sort=title")
+      .expect(200)
+      .then(({ body :{articles}}) => {
+      expect(articles).toBeSortedBy('title', {descending:true})
+    })
+  })
 })
 
 describe("/api/articles/:article_id/comments", () => {
