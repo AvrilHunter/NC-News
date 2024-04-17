@@ -11,7 +11,7 @@
   },
   "GET /api/articles": {
     "description": "serves an array of all articles, default sorted by descended created date.",
-    "queries": ["topic"],
+    "queries": ["topic", "sort", "order"],
     "exampleResponse": {
       "articles": [
         {

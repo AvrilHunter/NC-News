@@ -15,7 +15,7 @@ exports.selectArticle = (id) => {
       LEFT OUTER JOIN comments
       ON articles.article_id=comments.article_id
       WHERE articles.article_id=$1
-      GROUP BY articles.article_id;`, 
+      GROUP BY articles.article_id;`,
       [id]
     )
     .then(({ rows }) => {
@@ -26,16 +26,28 @@ exports.selectArticle = (id) => {
     });
 };
 
-exports.selectArticles = (topic, sort) => {
+exports.selectArticles = (topic, sort_by, order) => {
   const validSort = [
     "author",
     "title",
     "article_id",
     "topic",
     "created_at",
-    "article_img_url", "votes", "comment_count"
+    "article_img_url",
+    "votes",
+    "comment_count",
   ];
-  
+
+  if (sort_by && !validSort.includes(sort_by)) {
+    return Promise.reject({ status: 400, message: "bad request" });
+  }
+
+  const validOrder = ["asc", "desc"];
+
+  if (order && !validOrder.includes(order)) {
+    return Promise.reject({ status: 400, message: "bad request" });
+  }
+
   let queryValues = [];
   let queryStr = `SELECT
       articles.author,       title,
@@ -53,17 +65,24 @@ exports.selectArticles = (topic, sort) => {
     queryValues.push(topic);
   }
 
-  queryStr += ` GROUP BY articles.article_id`
-  
-  if (sort && validSort.includes(sort)) {
-    queryStr+= ` ORDER BY articles.${sort} DESC`;
+  queryStr += ` 
+    GROUP BY articles.article_id`;
+
+  if (sort_by) {
+    queryStr += ` 
+    ORDER BY ${sort_by} `;
   } else {
-    queryStr += ` ORDER BY articles.created_at DESC`;
+    queryStr += ` 
+    ORDER BY articles.created_at `;
   }
 
+  if (order && validOrder.includes(order)) {
+    queryStr += `ASC;`;
+  } else {
+    queryStr += `DESC;`;
+  }
 
-  return db.query(queryStr, queryValues)
-    .then(({ rows }) => {
+  return db.query(queryStr, queryValues).then(({ rows }) => {
     return rows;
   });
 };
@@ -71,11 +90,11 @@ exports.selectArticles = (topic, sort) => {
 exports.checkArticleExists = (article_id) => {
   return db
     .query(`SELECT * FROM articles WHERE article_id=$1`, [article_id])
-    .then(( {rows}) => {
+    .then(({ rows }) => {
       if (rows.length === 0) {
         return Promise.reject({ status: 404, message: "article not found" });
       }
-    })
+    });
 };
 
 exports.updateArticle = (article_id, voteChanges) => {
@@ -97,6 +116,6 @@ exports.updateArticle = (article_id, voteChanges) => {
       );
     })
     .then(({ rows }) => {
-      return rows[0]
-    })
+      return rows[0];
+    });
 };

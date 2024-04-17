@@ -16,12 +16,12 @@ exports.getArticleById = (req, res, next) => {
 };
 
 exports.getArticles = (req, res, next) => {
-  const { topic, sort } = req.query;
-    Promise.all([selectArticles(topic, sort), doesTopicExist(topic)])
-    .then(([articles]) => {
-      res.status(200).send({ articles });
-    })
-    .catch(next);
+  const { topic, sort_by, order } = req.query;
+    Promise.all([selectArticles(topic, sort_by, order), doesTopicExist(topic)])
+      .then(([articles]) => {
+        res.status(200).send({ articles });
+      })
+      .catch(next);
 };
 
 exports.patchArticle = (req, res, next) => {
