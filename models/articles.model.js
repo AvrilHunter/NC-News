@@ -1,4 +1,5 @@
 const db = require("../db/connection");
+const format = require('pg-format')
 
 exports.selectArticle = (id) => {
   return db
@@ -119,3 +120,25 @@ exports.updateArticle = (article_id, voteChanges) => {
       return rows[0];
     });
 };
+
+exports.insertArticle = (article) => {
+const nestedArr = [Object.values(article)]
+  const sqlQuery = format(`
+    INSERT INTO articles
+    (title, topic, author, body)
+    VALUES %L 
+    RETURNING article_id
+    `, nestedArr);
+  
+  return db.query(sqlQuery)
+    
+    .then(({ rows }) => {
+    let article_id = rows[0].article_id
+    return exports.selectArticle(article_id);
+    })
+    .then((rows) => {
+    return rows
+  })
+  
+}
+
