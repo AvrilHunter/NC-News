@@ -223,7 +223,7 @@ describe("/api/articles", () => {
         })
       })
   })
-  it ("GET 404: if given a value for topic as a query which does not exist", () => {
+  it("GET 404: if given a value for topic as a query which does not exist", () => {
     return request(app)
       .get("/api/articles/?topic=does-not-exist")
       .expect(404)
@@ -254,21 +254,62 @@ describe("/api/articles", () => {
       });
   })
   it("GET 200: if given a query parameter which exists but there aren't any topics returns []", () => {
-     return request(app)
-       .get("/api/articles?topic=paper")
-       .expect(200)
-       .then(({ body: { articles } }) => {
-         expect(articles).toEqual([])
-       });
+    return request(app)
+      .get("/api/articles?topic=paper")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toEqual([])
+      });
   })
   it("GET 200: when given valid sort-by query defaulting to descending", () => {
     return request(app)
-      .get("/api/articles?sort=title")
+      .get("/api/articles?sort_by=title")
       .expect(200)
-      .then(({ body :{articles}}) => {
-      expect(articles).toBeSortedBy('title', {descending:true})
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("title", { descending: true });
+      });
+  })
+  it("GET 200: when given calculated column to sort-by-defaulting to descending", () => {
+    return request(app)
+      .get("/api/articles?sort_by=comment_count")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("comment_count", { descending: true });
+      });
+  })
+  it("GET 200: when given order of ASC", () => {
+    return request(app)
+      .get("/api/articles?order=asc")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+      expect(articles).toBeSortedBy("created_at")
     })
   })
+  it("GET 200: when given sort, order and query parameters", () => {
+      return request(app)
+        .get("/api/articles?order=asc&&sort_by=title&&topic=mitch")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeSortedBy("title");
+          expect(articles).toHaveLength(12);
+        });
+  });
+  it("GET 400: when the sort query is given a column name which doesn't exist", () => {
+    return request(app)
+      .get("/api/articles?sort_by=not-a-column")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request")
+      });
+  })
+  it("GET 400: when given an order which is not  ASC or DESC", () => {
+     return request(app)
+       .get("/api/articles?order=not-an-order")
+       .expect(400)
+       .then(({ body: { message } }) => {
+         expect(message).toBe("bad request");
+       });
+  });
 })
 
 describe("/api/articles/:article_id/comments", () => {
