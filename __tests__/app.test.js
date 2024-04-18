@@ -310,6 +310,60 @@ describe("/api/articles", () => {
         expect(message).toBe("bad request");
       });
   });
+  it("POST 201: returns newly added article", () => {
+    const body = {
+      title: "Seven MORE inspirational thought leaders from Manchester UK",
+      topic: "mitch",
+      author: "rogersop",
+      body: "Who are we kidding, there is STILL only one, and it's Mitch!",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(body)
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article).toMatchObject({
+          title: "Seven MORE inspirational thought leaders from Manchester UK",
+          topic: "mitch",
+          author: "rogersop",
+          body: "Who are we kidding, there is STILL only one, and it's Mitch!",
+          votes: 0,
+          comment_count: 0,
+          article_id: 14,
+        });
+        expect(article.created_at).toBeString();
+        expect(article.article_img_url).toBeString();
+      });
+  });
+  it("POST 400: when given article which is missing data for a not-null column", () => {
+    const body = {
+      title: "Seven MORE inspirational thought leaders from Manchester UK",
+      topic: "mitch",
+      body: "Who are we kidding, there is STILL only one, and it's Mitch!",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(body)
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("article missing required information");
+      });
+  });
+  it("POST 400: when given data in invalid data type (including foreign key data type. )", () => {
+    const body = {
+      title: "Seven MORE inspirational thought leaders from Manchester UK",
+      topic: "mitch",
+      author: 1,
+      body: "Who are we kidding, there is STILL only one, and it's Mitch!",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(body)
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request");
+      });
+  });
 });
 
 describe("/api/articles/:article_id/comments", () => {
@@ -468,7 +522,7 @@ describe("/api/comments/:comment_id", () => {
       .then(({ body: { message } }) => {
         expect(message).toBe("bad request");
       });
-    
+
     const testBody2 = { author: 1 };
     const secondTest = request(app)
       .patch("/api/comments/1")
@@ -477,21 +531,20 @@ describe("/api/comments/:comment_id", () => {
       .then(({ body: { message } }) => {
         expect(message).toBe("bad request");
       });
-    
-     const testBody3 = { inc_votes: "string" };
-     const thirdTest = request(app)
-       .patch("/api/comments/1")
-       .send(testBody3)
-       .expect(400)
-       .then(({ body: { message } }) => {
-         expect(message).toBe("bad request");
-       });
-    
-    return Promise.all([firstTest,secondTest, thirdTest])
-    
+
+    const testBody3 = { inc_votes: "string" };
+    const thirdTest = request(app)
+      .patch("/api/comments/1")
+      .send(testBody3)
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request");
+      });
+
+    return Promise.all([firstTest, secondTest, thirdTest]);
   });
   it("PATCH 400: when given invalid ID", () => {
-    const body = { inc_votes : 1 };
+    const body = { inc_votes: 1 };
     return request(app)
       .patch("/api/comments/not-an-id")
       .send(body)
@@ -500,16 +553,26 @@ describe("/api/comments/:comment_id", () => {
         expect(message).toBe("bad request");
       });
   });
-   it("PATCH 404: when given valid ID but which which doesn't exist", () => {
-     const body = { inc_votes: 1 };
-     return request(app)
-       .patch("/api/comments/19")
-       .send(body)
-       .expect(404)
-       .then(({ body: { message } }) => {
-         expect(message).toBe("comment not found");
-       });
-   });
+  it("PATCH 404: when given valid ID but which which doesn't exist", () => {
+    const body = { inc_votes: 1 };
+    return request(app)
+      .patch("/api/comments/19")
+      .send(body)
+      .expect(404)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("comment not found");
+      });
+  });
+  it("405: for invalid method e.g GET", () => {
+    return request(app)
+      .get("/api/comments/:comment_id")
+      .expect(405)
+      .then(({ body: { message } }) => {
+        expect(message).toBe(
+          "GET: for /api/comments/:comment_id is not supported"
+        );
+      });
+  });
 });
 
 describe("/api/users", () => {
