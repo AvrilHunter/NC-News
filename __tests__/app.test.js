@@ -99,7 +99,7 @@ describe("/api/articles/:article_id", () => {
       });
   });
   it("PATCH 200: responds with the updated article with amended vote property", () => {
-    const body = { inc_votes: 1 }
+    const body = { inc_votes: 1 };
     return request(app)
       .patch("/api/articles/1")
       .send(body)
@@ -115,29 +115,29 @@ describe("/api/articles/:article_id", () => {
           article_img_url:
             "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
           article_id: 1,
-        })
-      })
-  })
+        });
+      });
+  });
   it("PATCH 400: when given vote in invalid data type", () => {
-    const body = { inc_votes: "one" }
+    const body = { inc_votes: "one" };
     return request(app)
       .patch("/api/articles/1")
       .send(body)
       .expect(400)
       .then(({ body: { message } }) => {
-        expect(message).toBe("bad request")
-      })
-  })
-   it("PATCH 400: when given invalid article ID data type", () => {
-     const body = { inc_votes: 1 };
-     return request(app)
-       .patch("/api/articles/one")
-       .send(body)
-       .expect(400)
-       .then(({ body: { message } }) => {
-         expect(message).toBe("bad request");
-       });
-   });
+        expect(message).toBe("bad request");
+      });
+  });
+  it("PATCH 400: when given invalid article ID data type", () => {
+    const body = { inc_votes: 1 };
+    return request(app)
+      .patch("/api/articles/one")
+      .send(body)
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request");
+      });
+  });
   it("PATCH 404: when given a valid article id but which doesn't exist", () => {
     const body = { inc_votes: 1 };
     return request(app)
@@ -174,19 +174,19 @@ describe("/api/articles/:article_id", () => {
           article_img_url:
             "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
           article_id: 1,
-          comment_count:11
+          comment_count: 11,
         });
       });
   });
-   it("GET 200: responds with article corresponding with given ID - the comment-count displays as 0 if no associated comments.", () => {
-     return request(app)
-       .get("/api/articles/2")
-       .expect(200)
-       .then(({ body }) => {
-         const { article } = body;
-         expect(article.comment_count).toBe(0)
-       });
-   });
+  it("GET 200: responds with article corresponding with given ID - the comment-count displays as 0 if no associated comments.", () => {
+    return request(app)
+      .get("/api/articles/2")
+      .expect(200)
+      .then(({ body }) => {
+        const { article } = body;
+        expect(article.comment_count).toBe(0);
+      });
+  });
 });
 
 describe("/api/articles", () => {
@@ -209,7 +209,7 @@ describe("/api/articles", () => {
           expect(article.comment_count).toBeNumber();
           expect(article.body).toBeUndefined();
         });
-        expect(articles[0].comment_count).toBe(2)
+        expect(articles[0].comment_count).toBe(2);
       });
   });
   it("GET 200: if given topic query, should revert with these articles", () => {
@@ -217,20 +217,20 @@ describe("/api/articles", () => {
       .get("/api/articles?topic=mitch")
       .expect(200)
       .then(({ body: { articles } }) => {
-        expect(articles).toHaveLength(12)
+        expect(articles).toHaveLength(12);
         articles.forEach((article) => {
-          expect(article.topic).toBe("mitch")
-        })
-      })
-  })
+          expect(article.topic).toBe("mitch");
+        });
+      });
+  });
   it("GET 404: if given a value for topic as a query which does not exist", () => {
     return request(app)
       .get("/api/articles/?topic=does-not-exist")
       .expect(404)
       .then(({ body: { message } }) => {
         expect(message).toBe("topic not found");
-      })
-  })
+      });
+  });
   it("GET 200: receives all articles if given query parameter which is not 'topic'.", () => {
     return request(app)
       .get("/api/articles/?not-topic=something")
@@ -252,15 +252,15 @@ describe("/api/articles", () => {
         });
         expect(articles[0].comment_count).toBe(2);
       });
-  })
+  });
   it("GET 200: if given a query parameter which exists but there aren't any topics returns []", () => {
     return request(app)
       .get("/api/articles?topic=paper")
       .expect(200)
       .then(({ body: { articles } }) => {
-        expect(articles).toEqual([])
+        expect(articles).toEqual([]);
       });
-  })
+  });
   it("GET 200: when given valid sort-by query defaulting to descending", () => {
     return request(app)
       .get("/api/articles?sort_by=title")
@@ -268,7 +268,7 @@ describe("/api/articles", () => {
       .then(({ body: { articles } }) => {
         expect(articles).toBeSortedBy("title", { descending: true });
       });
-  })
+  });
   it("GET 200: when given calculated column to sort-by-defaulting to descending", () => {
     return request(app)
       .get("/api/articles?sort_by=comment_count")
@@ -276,41 +276,41 @@ describe("/api/articles", () => {
       .then(({ body: { articles } }) => {
         expect(articles).toBeSortedBy("comment_count", { descending: true });
       });
-  })
+  });
   it("GET 200: when given order of ASC", () => {
     return request(app)
       .get("/api/articles?order=asc")
       .expect(200)
       .then(({ body: { articles } }) => {
-      expect(articles).toBeSortedBy("created_at")
-    })
-  })
+        expect(articles).toBeSortedBy("created_at");
+      });
+  });
   it("GET 200: when given sort, order and query parameters", () => {
-      return request(app)
-        .get("/api/articles?order=asc&&sort_by=title&&topic=mitch")
-        .expect(200)
-        .then(({ body: { articles } }) => {
-          expect(articles).toBeSortedBy("title");
-          expect(articles).toHaveLength(12);
-        });
+    return request(app)
+      .get("/api/articles?order=asc&&sort_by=title&&topic=mitch")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("title");
+        expect(articles).toHaveLength(12);
+      });
   });
   it("GET 400: when the sort query is given a column name which doesn't exist", () => {
     return request(app)
       .get("/api/articles?sort_by=not-a-column")
       .expect(400)
       .then(({ body: { message } }) => {
-        expect(message).toBe("bad request")
+        expect(message).toBe("bad request");
       });
-  })
-  it("GET 400: when given an order which is not  ASC or DESC", () => {
-     return request(app)
-       .get("/api/articles?order=not-an-order")
-       .expect(400)
-       .then(({ body: { message } }) => {
-         expect(message).toBe("bad request");
-       });
   });
-})
+  it("GET 400: when given an order which is not  ASC or DESC", () => {
+    return request(app)
+      .get("/api/articles?order=not-an-order")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request");
+      });
+  });
+});
 
 describe("/api/articles/:article_id/comments", () => {
   it("GET 200: responds with all comments from a given article id.", () => {
@@ -345,7 +345,7 @@ describe("/api/articles/:article_id/comments", () => {
     return request(app)
       .get("/api/articles/2/comments")
       .expect(200)
-      .then(({ body:{comments} }) => {
+      .then(({ body: { comments } }) => {
         expect(comments).toEqual([]);
       });
   });
@@ -397,7 +397,7 @@ describe("/api/articles/:article_id/comments", () => {
   it("POST 400: when given comment with incorrect properties", () => {
     const comment = {
       body: "Did not look like a pug!",
-      votes:10
+      votes: 10,
     };
     return request(app)
       .post("/api/articles/3/comments")
@@ -419,23 +419,21 @@ describe("/api/articles/:article_id/comments", () => {
       .then(({ body }) => {
         expect(body.message).toBe("bad request");
       });
-  })
+  });
 });
 
 describe("/api/comments/:comment_id", () => {
   it("DELETE 204: responds with correct status", () => {
-    return request(app)
-      .delete("/api/comments/1")
-      .expect(204)
-  })
+    return request(app).delete("/api/comments/1").expect(204);
+  });
   it("DELETE 400: when given invalid data type for comment id", () => {
     return request(app)
       .delete("/api/comments/one")
       .expect(400)
-      .then(({ body :{message}}) => {
-      expect(message).toBe("bad request")
-    })
-  })
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request");
+      });
+  });
   it("DELETE 404: when given valid id data type but which doesn't exist yet", () => {
     return request(app)
       .delete("/api/comments/19")
@@ -444,45 +442,112 @@ describe("/api/comments/:comment_id", () => {
         expect(message).toBe("comment does not exist");
       });
   });
-})
+  it("PATCH 200: responds with updated comment with votes amended.", () => {
+    const body = { inc_votes: -4 };
+    return request(app)
+      .patch("/api/comments/1")
+      .send(body)
+      .expect(200)
+      .then(({ body: { comment } }) => {
+        expect(comment).toMatchObject({
+          body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+          votes: 12,
+          author: "butter_bridge",
+          article_id: 9,
+          created_at: expect.any(String),
+          comment_id: 1,
+        });
+      });
+  });
+  it("PATCH 400: when request is in incorrect format.", () => {
+    const testBody1 = { notAKey: 1 };
+    const firstTest = request(app)
+      .patch("/api/comments/1")
+      .send(testBody1)
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request");
+      });
+    
+    const testBody2 = { author: 1 };
+    const secondTest = request(app)
+      .patch("/api/comments/1")
+      .send(testBody2)
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request");
+      });
+    
+     const testBody3 = { inc_votes: "string" };
+     const thirdTest = request(app)
+       .patch("/api/comments/1")
+       .send(testBody3)
+       .expect(400)
+       .then(({ body: { message } }) => {
+         expect(message).toBe("bad request");
+       });
+    
+    return Promise.all([firstTest,secondTest, thirdTest])
+    
+  });
+  it("PATCH 400: when given invalid ID", () => {
+    const body = { inc_votes : 1 };
+    return request(app)
+      .patch("/api/comments/not-an-id")
+      .send(body)
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request");
+      });
+  });
+   it("PATCH 404: when given valid ID but which which doesn't exist", () => {
+     const body = { inc_votes: 1 };
+     return request(app)
+       .patch("/api/comments/19")
+       .send(body)
+       .expect(404)
+       .then(({ body: { message } }) => {
+         expect(message).toBe("comment not found");
+       });
+   });
+});
 
 describe("/api/users", () => {
   it("GET 200: responds with all users", () => {
     return request(app)
       .get("/api/users")
       .expect(200)
-      .then(({ body:{users} }) => {
-        expect(users).toHaveLength(4)
+      .then(({ body: { users } }) => {
+        expect(users).toHaveLength(4);
         users.forEach((user) => {
-          expect(user.username).toBeString()
-          expect(user.name).toBeString()
-          expect(user.avatar_url).toBeString()
-        })
-    })
-  })
-})
+          expect(user.username).toBeString();
+          expect(user.name).toBeString();
+          expect(user.avatar_url).toBeString();
+        });
+      });
+  });
+});
 
 describe("/api/users/:username", () => {
   it("GET 200: responds with user", () => {
     return request(app)
       .get("/api/users/butter_bridge")
       .expect(200)
-      .then(({ body:{user} }) => {
+      .then(({ body: { user } }) => {
         expect(user).toMatchObject({
           username: "butter_bridge",
           name: "jonny",
           avatar_url:
-            "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg"
+            "https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg",
         });
-    })
-  })
+      });
+  });
   it("GET 404: when given username which does not exist", () => {
     return request(app)
       .get("/api/users/does-not-exist")
       .expect(404)
-      .then(({ body:{message} }) => {
-      expect(message).toBe("user not found")
-    })
-  })
-})
-
+      .then(({ body: { message } }) => {
+        expect(message).toBe("user not found");
+      });
+  });
+});
