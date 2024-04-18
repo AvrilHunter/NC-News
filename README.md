@@ -5,22 +5,23 @@ Welcome to Northcoders News API containing articles on a variety of topics, user
 
 ## About The Project
 
-Hosted REST API server available at - https://nc-news-z2fk.onrender.com/
+Hosted REST API server available at - https://nc-news-z2fk.onrender.com/api/
 ___
 
 ### Built With
 
 * Javascript 
 * PQSL
-* HTTP/Express Server
-* Supertest & Jest for full integration testing
+* HTTP/Express Server Creation
+* Full Test Driven Development
+* Supertest & Jest for Full Integration Testing
 
 ## Getting Started
 
-In order to set up a local copy and get it up and running, please follow these simple steps. 
+In order to set up a local copy, please follow these simple steps. 
 
-### Repro
-Repro can be found here:- https://github.com/AvrilHunter/NC-News
+### Repo
+Repo can be found here:- https://github.com/AvrilHunter/NC-News
 
 
 ### Installation and Set Up
