@@ -122,23 +122,33 @@ exports.updateArticle = (article_id, voteChanges) => {
 };
 
 exports.insertArticle = (article) => {
-const nestedArr = [Object.values(article)]
-  const sqlQuery = format(`
+  const { title, topic, author, body, article_img_url } = article;
+  const sqlValues = [title, topic, author, body]
+  let sqlQuery = ""
+
+  if (article_img_url) {
+    sqlValues.push(article_img_url)
+    sqlQuery = ` INSERT INTO articles
+    (title, topic, author, body, article_img_url)
+    VALUES ($1, $2, $3, $4, $5) 
+    RETURNING article_id;`} else {
+    sqlQuery = `
     INSERT INTO articles
     (title, topic, author, body)
-    VALUES %L 
+    VALUES ($1, $2, $3, $4) 
     RETURNING article_id
-    `, nestedArr);
+    `  }
   
-  return db.query(sqlQuery)
-    
+  return db
+    .query(sqlQuery, sqlValues)
+
     .then(({ rows }) => {
-    let article_id = rows[0].article_id
-    return exports.selectArticle(article_id);
+      let article_id = rows[0].article_id;
+      return exports.selectArticle(article_id);
     })
     .then((rows) => {
-    return rows
-  })
+      return rows;
+    });
   
 }
 

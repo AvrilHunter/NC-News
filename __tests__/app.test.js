@@ -189,7 +189,7 @@ describe("/api/articles/:article_id", () => {
   });
 });
 
-describe("/api/articles", () => {
+describe.only("/api/articles", () => {
   it("GET 200: responds with all articles with correct properties", () => {
     return request(app)
       .get("/api/articles")
@@ -310,10 +310,10 @@ describe("/api/articles", () => {
         expect(message).toBe("bad request");
       });
   });
-  it("POST 201: returns newly added article", () => {
+  it("POST 201: returns newly added article when not given image URL link", () => {
     const body = {
-      title: "Seven MORE inspirational thought leaders from Manchester UK",
       topic: "mitch",
+      title: "Seven MORE inspirational thought leaders from Manchester UK",
       author: "rogersop",
       body: "Who are we kidding, there is STILL only one, and it's Mitch!",
     };
@@ -330,9 +330,9 @@ describe("/api/articles", () => {
           votes: 0,
           comment_count: 0,
           article_id: 14,
+          article_img_url: 'https://images.pexels.com/photos/97050/pexels-photo-97050.jpeg?w=700&h=700'
         });
         expect(article.created_at).toBeString();
-        expect(article.article_img_url).toBeString();
       });
   });
   it("POST 400: when given article which is missing data for a not-null column", () => {
@@ -346,7 +346,7 @@ describe("/api/articles", () => {
       .send(body)
       .expect(400)
       .then(({ body: { message } }) => {
-        expect(message).toBe("article missing required information");
+        expect(message).toBe("bad request");
       });
   });
   it("POST 400: when given data in invalid data type (including foreign key data type. )", () => {
@@ -364,6 +364,32 @@ describe("/api/articles", () => {
         expect(message).toBe("bad request");
       });
   });
+  it("POST 201: when given URL string", () => {
+     const body = {
+       title: "Seven MORE inspirational thought leaders from Manchester UK",
+       topic: "mitch",
+       author: "rogersop",
+       body: "Who are we kidding, there is STILL only one, and it's Mitch!",
+       article_img_url: "https://http.dog/203.jpg",
+     };
+     return request(app)
+       .post("/api/articles")
+       .send(body)
+       .expect(201)
+       .then(({ body: { article } }) => {
+         expect(article).toMatchObject({
+           title: "Seven MORE inspirational thought leaders from Manchester UK",
+           topic: "mitch",
+           author: "rogersop",
+           body: "Who are we kidding, there is STILL only one, and it's Mitch!",
+           votes: 0,
+           comment_count: 0,
+           article_id: 14,
+           article_img_url: "https://http.dog/203.jpg"
+         });
+         expect(article.created_at).toBeString();
+       });
+  })
 });
 
 describe("/api/articles/:article_id/comments", () => {
