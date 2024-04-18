@@ -14,7 +14,8 @@ exports.databaseError = (err, req, res, next) => {
       res.status(400).send({ message: "bad request" });
       break;
     case "42601":
-      res.status(400).send({message:"article missing required information"})
+      res.status(400).send({ message: "article missing required information" })
+      break;
     default:
       next(err);
   }

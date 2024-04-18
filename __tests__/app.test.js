@@ -189,7 +189,7 @@ describe("/api/articles/:article_id", () => {
   });
 });
 
-describe.only("/api/articles", () => {
+describe("/api/articles", () => {
   it("GET 200: responds with all articles with correct properties", () => {
     return request(app)
       .get("/api/articles")
