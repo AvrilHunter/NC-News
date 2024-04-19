@@ -37,19 +37,12 @@ exports.selectArticles = (topic, sort_by, order, limit, page) => {
     "votes",
     "comment_count",
   ];
-
-  if (sort_by && !validSort.includes(sort_by)) {
+  if (!validSort.includes(sort_by)) {
     return Promise.reject({ status: 400, message: "bad request" });
   }
 
-  const validOrder = ["asc", "desc"];
-
-  if (order && !validOrder.includes(order)) {
+  if (order !== "ASC" && order !== "DESC") {
     return Promise.reject({ status: 400, message: "bad request" });
-  }
-
-  if (limit && !Number(limit)) {
-    return Promise.reject({ status: 400, message: "Incorrect limit query" });
   }
 
   let queryValues = [];
@@ -73,38 +66,55 @@ exports.selectArticles = (topic, sort_by, order, limit, page) => {
   queryStr += ` 
     GROUP BY articles.article_id`;
 
-  if (sort_by) {
+  if (sort_by === "comment_count") {
     queryStr += ` 
     ORDER BY ${sort_by} `;
   } else {
     queryStr += ` 
-    ORDER BY articles.created_at `;
+    ORDER BY articles.${sort_by} `;
   }
 
-  if (order && validOrder.includes(order)) {
-    queryStr += `ASC`;
-  } else {
-    queryStr += `DESC`;
-  }
+  queryStr += `${order} `;
 
-  if (Number(limit)) {
+  if (topic) {
     queryStr += ` 
-    LIMIT ${limit}`;
-  }else{ queryStr += ` 
-    LIMIT 10`;}
-
-  if (page) {
-    let OFFSET = 0
-    if (limit) { OFFSET = (page - 1) * limit } else {
-      OFFSET = (page - 1) * 10
-    }
-
-    queryStr +=
-      ` OFFSET ${OFFSET};`
+    LIMIT $2`;
+  } else {
+    queryStr += ` 
+    LIMIT $1`;
   }
- 
+
+  queryValues.push(Number(limit));
+  queryStr += ` OFFSET ${(page - 1) * limit};`;
+
+  return Promise.all([db.query(queryStr, queryValues), page]).then(
+    ([data, page]) => {
+      const {rows}=data
+      if (rows.length === 0 && page > 1) {
+        return Promise.reject({
+          status: 404,
+          message: "no more articles to be displayed",
+        });
+      }
+      return rows;
+    }
+  );
+};
+
+exports.countOfSelectedArticles = (topic) => {
+  let queryValues = [];
+  let queryStr = `SELECT
+    COUNT(article_id) AS total_count
+    FROM articles`;
+  if (topic) {
+    queryStr += ` WHERE topic = $1`;
+    queryValues.push(topic);
+  }
   return db.query(queryStr, queryValues).then(({ rows }) => {
-    return rows
+    if (rows[0].total_count === 0) {
+      return Promise.reject({ status: 404, message: "no articles found" });
+    }
+    return Number(rows[0].total_count);
   });
 };
 
@@ -143,22 +153,24 @@ exports.updateArticle = (article_id, voteChanges) => {
 
 exports.insertArticle = (article) => {
   const { title, topic, author, body, article_img_url } = article;
-  const sqlValues = [title, topic, author, body]
-  let sqlQuery = ""
+  const sqlValues = [title, topic, author, body];
+  let sqlQuery = "";
 
   if (article_img_url) {
-    sqlValues.push(article_img_url)
+    sqlValues.push(article_img_url);
     sqlQuery = ` INSERT INTO articles
     (title, topic, author, body, article_img_url)
     VALUES ($1, $2, $3, $4, $5) 
-    RETURNING article_id;`} else {
+    RETURNING article_id;`;
+  } else {
     sqlQuery = `
     INSERT INTO articles
     (title, topic, author, body)
     VALUES ($1, $2, $3, $4) 
     RETURNING article_id
-    `  }
-  
+    `;
+  }
+
   return db
     .query(sqlQuery, sqlValues)
 
@@ -169,6 +181,4 @@ exports.insertArticle = (article) => {
     .then((rows) => {
       return rows;
     });
-  
-}
-
+};
