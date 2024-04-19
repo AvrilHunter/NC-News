@@ -1,5 +1,4 @@
 const db = require("../db/connection");
-const format = require('pg-format')
 
 exports.selectArticle = (id) => {
   return db
@@ -27,7 +26,7 @@ exports.selectArticle = (id) => {
     });
 };
 
-exports.selectArticles = (topic, sort_by, order) => {
+exports.selectArticles = (topic, sort_by, order, limit, page) => {
   const validSort = [
     "author",
     "title",
@@ -49,6 +48,10 @@ exports.selectArticles = (topic, sort_by, order) => {
     return Promise.reject({ status: 400, message: "bad request" });
   }
 
+  if (limit && !Number(limit)) {
+    return Promise.reject({ status: 400, message: "Incorrect limit query" });
+  }
+
   let queryValues = [];
   let queryStr = `SELECT
       articles.author,       title,
@@ -56,7 +59,8 @@ exports.selectArticles = (topic, sort_by, order) => {
       articles.created_at,
       article_img_url,
       articles.votes,
-      COUNT(comments.comment_id)::INT AS comment_count
+      COUNT(comments.comment_id)::INT AS comment_count,
+      COUNT(*) OVER() AS total_count
     FROM articles
     LEFT OUTER JOIN comments
     ON articles.article_id=comments.article_id`;
@@ -78,13 +82,29 @@ exports.selectArticles = (topic, sort_by, order) => {
   }
 
   if (order && validOrder.includes(order)) {
-    queryStr += `ASC;`;
+    queryStr += `ASC`;
   } else {
-    queryStr += `DESC;`;
+    queryStr += `DESC`;
   }
 
+  if (Number(limit)) {
+    queryStr += ` 
+    LIMIT ${limit}`;
+  }else{ queryStr += ` 
+    LIMIT 10`;}
+
+  if (page) {
+    let OFFSET = 0
+    if (limit) { OFFSET = (page - 1) * limit } else {
+      OFFSET = (page - 1) * 10
+    }
+
+    queryStr +=
+      ` OFFSET ${OFFSET};`
+  }
+ 
   return db.query(queryStr, queryValues).then(({ rows }) => {
-    return rows;
+    return rows
   });
 };
 
@@ -122,23 +142,33 @@ exports.updateArticle = (article_id, voteChanges) => {
 };
 
 exports.insertArticle = (article) => {
-const nestedArr = [Object.values(article)]
-  const sqlQuery = format(`
+  const { title, topic, author, body, article_img_url } = article;
+  const sqlValues = [title, topic, author, body]
+  let sqlQuery = ""
+
+  if (article_img_url) {
+    sqlValues.push(article_img_url)
+    sqlQuery = ` INSERT INTO articles
+    (title, topic, author, body, article_img_url)
+    VALUES ($1, $2, $3, $4, $5) 
+    RETURNING article_id;`} else {
+    sqlQuery = `
     INSERT INTO articles
     (title, topic, author, body)
-    VALUES %L 
+    VALUES ($1, $2, $3, $4) 
     RETURNING article_id
-    `, nestedArr);
+    `  }
   
-  return db.query(sqlQuery)
-    
+  return db
+    .query(sqlQuery, sqlValues)
+
     .then(({ rows }) => {
-    let article_id = rows[0].article_id
-    return exports.selectArticle(article_id);
+      let article_id = rows[0].article_id;
+      return exports.selectArticle(article_id);
     })
     .then((rows) => {
-    return rows
-  })
+      return rows;
+    });
   
 }
 

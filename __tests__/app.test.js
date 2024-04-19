@@ -15,6 +15,7 @@ afterAll(() => {
   db.end();
 });
 
+
 beforeEach(() => {
   return seed({ topicData, userData, articleData, commentData });
 });
@@ -196,7 +197,7 @@ describe("/api/articles", () => {
       .expect(200)
       .then(({ body }) => {
         const { articles } = body;
-        expect(articles.length).toBe(13);
+        expect(articles.length).toBe(10);
         expect(articles).toBeSortedBy("created_at", { descending: true });
         articles.forEach((article) => {
           expect(article.author).toBeString();
@@ -217,7 +218,7 @@ describe("/api/articles", () => {
       .get("/api/articles?topic=mitch")
       .expect(200)
       .then(({ body: { articles } }) => {
-        expect(articles).toHaveLength(12);
+        expect(articles).toHaveLength(10);
         articles.forEach((article) => {
           expect(article.topic).toBe("mitch");
         });
@@ -237,7 +238,7 @@ describe("/api/articles", () => {
       .expect(200)
       .then(({ body }) => {
         const { articles } = body;
-        expect(articles.length).toBe(13);
+        expect(articles.length).toBe(10);
         expect(articles).toBeSortedBy("created_at", { descending: true });
         articles.forEach((article) => {
           expect(article.author).toBeString();
@@ -253,7 +254,7 @@ describe("/api/articles", () => {
         expect(articles[0].comment_count).toBe(2);
       });
   });
-  it("GET 200: if given a query parameter which exists but there aren't any topics returns []", () => {
+  it("GET 200: if given a query parameter which exists but there aren't any topics returned []", () => {
     return request(app)
       .get("/api/articles?topic=paper")
       .expect(200)
@@ -291,7 +292,7 @@ describe("/api/articles", () => {
       .expect(200)
       .then(({ body: { articles } }) => {
         expect(articles).toBeSortedBy("title");
-        expect(articles).toHaveLength(12);
+        expect(articles).toHaveLength(10);
       });
   });
   it("GET 400: when the sort query is given a column name which doesn't exist", () => {
@@ -310,10 +311,91 @@ describe("/api/articles", () => {
         expect(message).toBe("bad request");
       });
   });
-  it("POST 201: returns newly added article", () => {
+  it("GET 200: when given a limit to action with no pages, overrides the default", () => {
+    return request(app)
+      .get("/api/articles?limit=11")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(articles).toHaveLength(11);
+        expect(total_count).toBe(13);
+      });
+  });
+  it("GET 400: when given a limit which is not a number", () => {
+    return request(app)
+      .get("/api/articles?limit=not-a-number")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("Incorrect limit query");
+      });
+  });
+  it("GET 200: responds with the correct items when given limit and pages", () => {
+    const firstTest = request(app)
+      .get("/api/articles?p=2&&limit=10")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(articles).toHaveLength(3);
+        expect(total_count).toBe(13);
+        expect(articles[0]).toMatchObject({
+          article_id: 8,
+          title: "Does Mitch predate civilisation?",
+          topic: "mitch",
+          author: "icellusedkars",
+        });
+      });
+
+    const secondTest = request(app)
+      .get("/api/articles?p=2&&limit=5")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(articles).toHaveLength(5);
+        expect(total_count).toBe(13);
+        expect(articles[0]).toMatchObject({
+          author: "rogersop",
+          title: "UNCOVERED: catspiracy to bring down democracy",
+          article_id: 5,
+        });
+      });
+    return Promise.all([firstTest, secondTest]);
+  });
+
+  it("GET 200: total_count adjusts when a filter is applied - topic query is given", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(articles).toHaveLength(10);
+        expect(total_count).toBe(12);
+      });
+  }),
+  it("GET 200: when given topic query, limit and pages, returns correct total_count.", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch&&p=2&&limit=8")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(articles).toHaveLength(4);
+        expect(total_count).toBe(12);
+      });
+  });
+  it("GET 200: when given a page has no remaining articles to display", () => {
+    return request(app)
+      .get("/api/articles?p=3")
+      .expect(200)
+      .then(({ body:{articles} }) => {
+        expect(articles).toEqual([])
+    })
+  })
+  it("GET 400: when give pages query in incorrect format", () => {
+    return request(app)
+         .get("/api/articles?p=not-a-number")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request")
+      })
+  })
+  it("POST 201: returns newly added article when not given image URL link", () => {
     const body = {
-      title: "Seven MORE inspirational thought leaders from Manchester UK",
       topic: "mitch",
+      title: "Seven MORE inspirational thought leaders from Manchester UK",
       author: "rogersop",
       body: "Who are we kidding, there is STILL only one, and it's Mitch!",
     };
@@ -330,9 +412,10 @@ describe("/api/articles", () => {
           votes: 0,
           comment_count: 0,
           article_id: 14,
+          article_img_url:
+            "https://images.pexels.com/photos/97050/pexels-photo-97050.jpeg?w=700&h=700",
         });
         expect(article.created_at).toBeString();
-        expect(article.article_img_url).toBeString();
       });
   });
   it("POST 400: when given article which is missing data for a not-null column", () => {
@@ -346,7 +429,7 @@ describe("/api/articles", () => {
       .send(body)
       .expect(400)
       .then(({ body: { message } }) => {
-        expect(message).toBe("article missing required information");
+        expect(message).toBe("bad request");
       });
   });
   it("POST 400: when given data in invalid data type (including foreign key data type. )", () => {
@@ -362,6 +445,32 @@ describe("/api/articles", () => {
       .expect(400)
       .then(({ body: { message } }) => {
         expect(message).toBe("bad request");
+      });
+  });
+  it("POST 201: when given URL string", () => {
+    const body = {
+      title: "Seven MORE inspirational thought leaders from Manchester UK",
+      topic: "mitch",
+      author: "rogersop",
+      body: "Who are we kidding, there is STILL only one, and it's Mitch!",
+      article_img_url: "https://http.dog/203.jpg",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(body)
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article).toMatchObject({
+          title: "Seven MORE inspirational thought leaders from Manchester UK",
+          topic: "mitch",
+          author: "rogersop",
+          body: "Who are we kidding, there is STILL only one, and it's Mitch!",
+          votes: 0,
+          comment_count: 0,
+          article_id: 14,
+          article_img_url: "https://http.dog/203.jpg",
+        });
+        expect(article.created_at).toBeString();
       });
   });
 });
@@ -517,7 +626,9 @@ describe("/api/comments/:comment_id", () => {
     const testBody1 = { notAKey: 1 };
     const firstTest = request(app)
       .patch("/api/comments/1")
-      .send(testBody1)
+      .send(
+
+testBody1)
       .expect(400)
       .then(({ body: { message } }) => {
         expect(message).toBe("bad request");
@@ -564,6 +675,10 @@ describe("/api/comments/:comment_id", () => {
       });
   });
   it("405: for invalid method e.g GET", () => {
+    //invalid array of types, square brackets (instead of Get)
+    //then loop over and use bracket notation to do the get request.
+    //promise all and then wait for them all to resolve.
+    //add the .all to the rest of the endpoints. But write this first.
     return request(app)
       .get("/api/comments/:comment_id")
       .expect(405)
