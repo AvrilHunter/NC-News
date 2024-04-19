@@ -14,6 +14,9 @@ exports.databaseError = (err, req, res, next) => {
     case "42703":
       res.status(400).send({ message: "bad request" });
       break;
+    case "23505":
+      res.status(400).send({ message: "not a unique identifier" });
+      break;
     default:
       next(err);
   }

@@ -46,7 +46,48 @@ describe("/api/topics", () => {
         });
       });
   });
-});
+  it("POST 201: responds with topic containing newly added topic", () => {
+    const body = {
+      slug: "dogs",
+      description: "the best pet",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(body)
+      .expect(201)
+      .then(({ body: { topic } }) => {
+        expect(topic).toMatchObject({
+          slug: "dogs",
+          description: "the best pet",
+        });
+      })
+  })
+  it("POST 400: when given slug which is not unique ", () => {
+    const body = {
+      slug: "paper",
+      description: "another description",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(body)
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("not a unique identifier")
+       })
+  });
+  it("POST 400: when missing primary key data", () => {
+    const body = {
+      description: "another description",
+    };
+    return request(app)
+      .post("/api/topics")
+      .send(body)
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request");
+      });
+  });
+})
 
 describe("/api/invalid-endpoint", () => {
   it("GET 404: when invalid URL provided", () => {
@@ -782,3 +823,5 @@ describe("/api/users/:username", () => {
       });
   });
 });
+
+
