@@ -11,7 +11,8 @@ const {
 
 exports.getComments = (req, res, next) => {
   const { article_id } = req.params;
-  Promise.all([selectComments(article_id), checkArticleExists(article_id)])
+  const { limit = 10, p = 1 } = req.query
+  Promise.all([selectComments(article_id,limit,p), checkArticleExists(article_id)])
     .then(([comments]) => {
       res.status(200).send({ comments });
     })

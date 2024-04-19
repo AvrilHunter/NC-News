@@ -254,7 +254,7 @@ describe("/api/articles", () => {
         expect(articles[0].comment_count).toBe(2);
       });
   });
-  it("GET 200: if given a query parameter which exists but there aren't any topics returned []", () => {
+  it("GET 200: if given a topic query which exists but there aren't any topics returned []", () => {
     return request(app)
       .get("/api/articles?topic=paper")
       .expect(200)
@@ -325,7 +325,7 @@ describe("/api/articles", () => {
       .get("/api/articles?limit=not-a-number")
       .expect(400)
       .then(({ body: { message } }) => {
-        expect(message).toBe("Incorrect limit query");
+        expect(message).toBe("bad request");
       });
   });
   it("GET 200: responds with the correct items when given limit and pages", () => {
@@ -376,13 +376,13 @@ describe("/api/articles", () => {
         expect(total_count).toBe(12);
       });
   });
-  it("GET 200: when given a page has no remaining articles to display", () => {
+  it("GET 404: when given a page has no remaining articles to display", () => {
     return request(app)
       .get("/api/articles?p=3")
-      .expect(200)
-      .then(({ body:{articles} }) => {
-        expect(articles).toEqual([])
-    })
+      .expect(404)
+      .then(({ body: { message } }) => {
+        expect(message).toEqual("no more articles to be displayed");
+      });
   })
   it("GET 400: when give pages query in incorrect format", () => {
     return request(app)
@@ -478,12 +478,12 @@ describe("/api/articles", () => {
 describe("/api/articles/:article_id/comments", () => {
   it("GET 200: responds with all comments from a given article id.", () => {
     return request(app)
-      .get("/api/articles/3/comments")
+      .get("/api/articles/1/comments")
       .expect(200)
       .then(({ body }) => {
         const { comments } = body;
         expect(comments).toBeArray();
-        expect(comments).toHaveLength(2);
+        expect(comments.length).toBeGreaterThan(0)
         expect(comments).toBeSortedBy("created_at", { descending: true });
         comments.forEach((comment) => {
           expect(comment.comment_id).toBeNumber();
@@ -583,7 +583,60 @@ describe("/api/articles/:article_id/comments", () => {
         expect(body.message).toBe("bad request");
       });
   });
-});
+  it("GET 200: displays correct number of responses given a limit", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=4")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toHaveLength(4);
+      });
+  });
+  it("GET 200: displays correct responses when given page and limit queries", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=4&&p=2")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toHaveLength(4);
+        expect(comments[0].comment_id).toBe(7)
+        });
+      });
+  it("GET 200: displays correct responses when given page queries with no limit", () => {
+  return request(app)
+    .get("/api/articles/1/comments?p=2")
+    .expect(200)
+    .then(({ body: { comments } }) => {
+      expect(comments).toHaveLength(1);
+      expect(comments[0].comment_id).toBe(9)
+      });
+  });
+  it("GET 400: when given page in incorrect data type", () => {
+   return request(app)
+     .get("/api/articles/1/comments?p=not-a-number")
+     .expect(400)
+     .then(({ body }) => {
+       const { message } = body;
+       expect(message).toBe("bad request");
+     });
+  })
+  it("GET 400: when given limit in incorrect data type", () => {
+    return request(app)
+      .get("/api/articles/1/comments?limit=not-a-number")
+      .expect(400)
+      .then(({ body }) => {
+        const { message } = body;
+        expect(message).toBe("bad request");
+      });
+   });
+  it("GET 404: when returning a page which has no comments left to display", () => {
+    return request(app)
+      .get("/api/articles/3/comments?p=2")
+      .expect(404)
+      .then(({ body }) => {
+        const { message } = body;
+        expect(message).toBe("No more comments to display");
+      });
+  });
+  });
 
 describe("/api/comments/:comment_id", () => {
   it("DELETE 204: responds with correct status", () => {

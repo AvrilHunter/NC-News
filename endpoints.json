@@ -92,7 +92,7 @@
   },
   "GET /api/articles/:article_id/comments": {
     "description": "serves an array of all comments associated with specific article ID, default sorted by descended created date",
-    "queries": [],
+    "queries": ["limit", "p"],
     "exampleResponse": {
       "comments": [
         {
