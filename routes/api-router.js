@@ -15,8 +15,4 @@ apiRouter.use("/users", usersRouter)
 
 apiRouter.use("", endpointsRouter)
 
-apiRouter.use("/*", (req, res, next) => {
-  next({ status: 404, message: "not found" });
-})
-
 module.exports = apiRouter
