@@ -45,7 +45,6 @@ exports.getArticles = (req, res, next) => {
 exports.patchArticle = (req, res, next) => {
   const { article_id } = req.params;
   const { inc_votes: votes } = req.body;
-
   return checkArticleExists(article_id)
     .then(() => {
       return updateArticle(article_id, votes);

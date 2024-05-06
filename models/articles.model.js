@@ -37,6 +37,7 @@ exports.selectArticles = (topic, sort_by, order, limit, page) => {
     "votes",
     "comment_count",
   ];
+
   if (!validSort.includes(sort_by)) {
     return Promise.reject({ status: 400, message: "bad request" });
   }
@@ -167,7 +168,7 @@ exports.insertArticle = (article) => {
     INSERT INTO articles
     (title, topic, author, body)
     VALUES ($1, $2, $3, $4) 
-    RETURNING article_id
+    RETURNING *
     `;
   }
 
