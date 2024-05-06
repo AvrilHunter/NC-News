@@ -73,7 +73,7 @@ describe("/api/topics", () => {
       .expect(400)
       .then(({ body: { message } }) => {
         expect(message).toBe("not a unique identifier")
-       })
+      })
   });
   it("POST 400: when missing primary key data", () => {
     const body = {
