@@ -15,7 +15,6 @@ afterAll(() => {
   db.end();
 });
 
-
 beforeEach(() => {
   return seed({ topicData, userData, articleData, commentData });
 });
@@ -60,8 +59,8 @@ describe("/api/topics", () => {
           slug: "dogs",
           description: "the best pet",
         });
-      })
-  })
+      });
+  });
   it("POST 400: when given slug which is not unique ", () => {
     const body = {
       slug: "paper",
@@ -72,8 +71,8 @@ describe("/api/topics", () => {
       .send(body)
       .expect(400)
       .then(({ body: { message } }) => {
-        expect(message).toBe("not a unique identifier")
-      })
+        expect(message).toBe("not a unique identifier");
+      });
   });
   it("POST 400: when missing primary key data", () => {
     const body = {
@@ -87,7 +86,7 @@ describe("/api/topics", () => {
         expect(message).toBe("bad request");
       });
   });
-})
+});
 
 describe("/api/invalid-endpoint", () => {
   it("GET 404: when invalid URL provided", () => {
@@ -227,6 +226,25 @@ describe("/api/articles/:article_id", () => {
       .then(({ body }) => {
         const { article } = body;
         expect(article.comment_count).toBe(0);
+      });
+  });
+  it("DELETE 204: responds with correct status", () => {
+    return request(app).delete("/api/articles/1").expect(204);
+  });
+  it("DELETE 400: when give invalid data type for article_id", () => {
+    return request(app)
+      .delete("/api/articles/abc")
+      .expect(400)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("bad request");
+      });
+  });
+  it("DELETE 404: when give valid article id data type but which doesn't exist yet", () => {
+    return request(app)
+      .delete("/api/articles/9999")
+      .expect(404)
+      .then(({ body: { message } }) => {
+        expect(message).toBe("no article found");
       });
   });
 });
@@ -408,15 +426,15 @@ describe("/api/articles", () => {
         expect(total_count).toBe(12);
       });
   }),
-  it("GET 200: when given topic query, limit and pages, returns correct total_count.", () => {
-    return request(app)
-      .get("/api/articles?topic=mitch&&p=2&&limit=8")
-      .expect(200)
-      .then(({ body: { articles, total_count } }) => {
-        expect(articles).toHaveLength(4);
-        expect(total_count).toBe(12);
-      });
-  });
+    it("GET 200: when given topic query, limit and pages, returns correct total_count.", () => {
+      return request(app)
+        .get("/api/articles?topic=mitch&&p=2&&limit=8")
+        .expect(200)
+        .then(({ body: { articles, total_count } }) => {
+          expect(articles).toHaveLength(4);
+          expect(total_count).toBe(12);
+        });
+    });
   it("GET 404: when given a page has no remaining articles to display", () => {
     return request(app)
       .get("/api/articles?p=3")
@@ -424,15 +442,15 @@ describe("/api/articles", () => {
       .then(({ body: { message } }) => {
         expect(message).toEqual("no more articles to be displayed");
       });
-  })
+  });
   it("GET 400: when give pages query in incorrect format", () => {
     return request(app)
-         .get("/api/articles?p=not-a-number")
+      .get("/api/articles?p=not-a-number")
       .expect(400)
       .then(({ body: { message } }) => {
-        expect(message).toBe("bad request")
-      })
-  })
+        expect(message).toBe("bad request");
+      });
+  });
   it("POST 201: returns newly added article when not given image URL link", () => {
     const body = {
       topic: "mitch",
@@ -524,7 +542,7 @@ describe("/api/articles/:article_id/comments", () => {
       .then(({ body }) => {
         const { comments } = body;
         expect(comments).toBeArray();
-        expect(comments.length).toBeGreaterThan(0)
+        expect(comments.length).toBeGreaterThan(0);
         expect(comments).toBeSortedBy("created_at", { descending: true });
         comments.forEach((comment) => {
           expect(comment.comment_id).toBeNumber();
@@ -638,27 +656,27 @@ describe("/api/articles/:article_id/comments", () => {
       .expect(200)
       .then(({ body: { comments } }) => {
         expect(comments).toHaveLength(4);
-        expect(comments[0].comment_id).toBe(7)
-        });
+        expect(comments[0].comment_id).toBe(7);
       });
+  });
   it("GET 200: displays correct responses when given page queries with no limit", () => {
-  return request(app)
-    .get("/api/articles/1/comments?p=2")
-    .expect(200)
-    .then(({ body: { comments } }) => {
-      expect(comments).toHaveLength(1);
-      expect(comments[0].comment_id).toBe(9)
+    return request(app)
+      .get("/api/articles/1/comments?p=2")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toHaveLength(1);
+        expect(comments[0].comment_id).toBe(9);
       });
   });
   it("GET 400: when given page in incorrect data type", () => {
-   return request(app)
-     .get("/api/articles/1/comments?p=not-a-number")
-     .expect(400)
-     .then(({ body }) => {
-       const { message } = body;
-       expect(message).toBe("bad request");
-     });
-  })
+    return request(app)
+      .get("/api/articles/1/comments?p=not-a-number")
+      .expect(400)
+      .then(({ body }) => {
+        const { message } = body;
+        expect(message).toBe("bad request");
+      });
+  });
   it("GET 400: when given limit in incorrect data type", () => {
     return request(app)
       .get("/api/articles/1/comments?limit=not-a-number")
@@ -667,7 +685,7 @@ describe("/api/articles/:article_id/comments", () => {
         const { message } = body;
         expect(message).toBe("bad request");
       });
-   });
+  });
   it("GET 404: when returning a page which has no comments left to display", () => {
     return request(app)
       .get("/api/articles/3/comments?p=2")
@@ -677,7 +695,7 @@ describe("/api/articles/:article_id/comments", () => {
         expect(message).toBe("No more comments to display");
       });
   });
-  });
+});
 
 describe("/api/comments/:comment_id", () => {
   it("DELETE 204: responds with correct status", () => {
@@ -720,9 +738,7 @@ describe("/api/comments/:comment_id", () => {
     const testBody1 = { notAKey: 1 };
     const firstTest = request(app)
       .patch("/api/comments/1")
-      .send(
-
-testBody1)
+      .send(testBody1)
       .expect(400)
       .then(({ body: { message } }) => {
         expect(message).toBe("bad request");
@@ -823,5 +839,3 @@ describe("/api/users/:username", () => {
       });
   });
 });
-
-

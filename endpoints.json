@@ -3,18 +3,10 @@
     "description": "serves up a json representation of all the available endpoints of the api"
   },
   "GET /api/topics": {
-    "description": "serves an array of all topics",
+    "description": "serves an array of all topics, sorted by recently added",
     "queries": [],
     "exampleResponse": {
       "topics": [{ "slug": "football", "description": "Footie!" }]
-    }
-  },
-  "GET /api/topics": {
-    "description": "serves newly added topics",
-    "queries": [],
-    "exampleBody":{ "slug": "football", "description": "Footie!" },
-    "exampleResponse": {
-      "topics": { "slug": "football", "description": "Footie!" }
     }
   },
   "GET /api/articles": {
@@ -97,6 +89,11 @@
         "article_id": 1
       }
     }
+  },
+  "DELETE /api/articles/:article:id": {
+    "description": "serves 204 status code when successfully deletes an article by given id",
+    "queries": [],
+    "exampleResponse": "no response provided"
   },
   "GET /api/articles/:article_id/comments": {
     "description": "serves an array of all comments associated with specific article ID, default sorted by descended created date",

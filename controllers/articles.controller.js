@@ -5,6 +5,7 @@ const {
   checkArticleExists,
   insertArticle,
   countOfSelectedArticles,
+  removeArticle,
 } = require("../models/articles.model");
 const { doesTopicExist } = require("../models/topic.model");
 
@@ -37,7 +38,7 @@ exports.getArticles = (req, res, next) => {
     p,
   ])
     .then(([articles, , total_count]) => {
-      res.status(200).send({ articles, total_count  });
+      res.status(200).send({ articles, total_count });
     })
     .catch(next);
 };
@@ -60,6 +61,15 @@ exports.postArticle = (req, res, next) => {
   return insertArticle(newArticle)
     .then((article) => {
       res.status(201).send({ article });
+    })
+    .catch(next);
+};
+
+exports.deleteArticle = (req, res, next) => {
+  const { article_id } = req.params;
+  return removeArticle(article_id)
+    .then((data) => {
+      res.status(204).send();
     })
     .catch(next);
 };
