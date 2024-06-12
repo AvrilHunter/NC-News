@@ -1,4 +1,5 @@
 const db = require("../db/connection");
+const { selectComments, removeComment } = require("./comments.model");
 
 exports.selectArticle = (id) => {
   return db
@@ -90,7 +91,7 @@ exports.selectArticles = (topic, sort_by, order, limit, page) => {
 
   return Promise.all([db.query(queryStr, queryValues), page]).then(
     ([data, page]) => {
-      const {rows}=data
+      const { rows } = data;
       if (rows.length === 0 && page > 1) {
         return Promise.reject({
           status: 404,
@@ -174,12 +175,42 @@ exports.insertArticle = (article) => {
 
   return db
     .query(sqlQuery, sqlValues)
-
     .then(({ rows }) => {
       let article_id = rows[0].article_id;
       return exports.selectArticle(article_id);
     })
     .then((rows) => {
       return rows;
+    });
+};
+
+exports.removeArticle = (article_id) => {
+  return db
+    .query(
+      `SELECT comment_id 
+      FROM comments
+      WHERE article_id = $1`,
+      [article_id]
+    )
+    .then(({ rows }) => {
+      const array = [];
+      for (const comment of rows) {
+        array.push(removeComment(comment.comment_id));
+      }
+      return Promise.all(array);
+    })
+    .then(() => {
+      return db.query(
+        `DELETE FROM articles
+         WHERE article_id=$1
+          RETURNING *;`,
+        [article_id]
+      );
+    })
+    .then(({ rows }) => {
+      if (rows.length === 0) {
+        return Promise.reject({ status: 404, message: "no article found" });
+      }
+      return rows[0];
     });
 };

@@ -5,6 +5,7 @@ const {
   getArticles,
   patchArticle,
   postArticle,
+  deleteArticle,
 } = require("../controllers/articles.controller");
 
 const {
@@ -12,20 +13,23 @@ const {
   postComment,
 } = require("../controllers/comments.controller");
 
-articlesRouter.route("")
+articlesRouter
+  .route("")
   .get(getArticles)
   .post(postArticle)
   .all((req, res, next) => {
-  const { method, originalUrl } = req;
-  res.status(405).send({
-    status: 405,
-    message: `${method}: for ${originalUrl} is not supported`,
+    const { method, originalUrl } = req;
+    res.status(405).send({
+      status: 405,
+      message: `${method}: for ${originalUrl} is not supported`,
+    });
   });
-});
 
-articlesRouter.route("/:article_id")
+articlesRouter
+  .route("/:article_id")
   .get(getArticleById)
-  .patch(patchArticle);
+  .patch(patchArticle)
+  .delete(deleteArticle);
 
 articlesRouter
   .route("/:article_id/comments")
